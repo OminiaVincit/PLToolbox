@@ -43,21 +43,18 @@
 
 extern double epsi;
 
-inline bool almostEqual( double a , double b )
-{
+inline bool almostEqual(double a , double b){
     if ( fabs(a-b) < epsi )
         return true;
     return false;
 }
 
 
-double birth ( std::pair<double,double> a )
-{
+double birth (std::pair<double,double> a) {
     return a.first-a.second;
 }
 
-double death( std::pair<double,double> a )
-{
+double death(std::pair<double,double> a){
     return a.first+a.second;
 }
 

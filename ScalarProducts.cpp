@@ -25,9 +25,12 @@
 #include "FilesReader.h"
 #include "PermutationTest.h"
 
-const char* programInfo =
-"This is ScalarProduct program which is a part of Peristence Landscape Toolbox by Pawel Dlotko. It takes as input the following parameter: \n\
-A file containing a list of files with persistence landscapes (.lan files) or persistence barcodes have to be provided).";
+const char* programInfo = "Compute scalar product between barcodes or persistence landscape";
+
+bool is_file_exist(std::string filename){
+    std::ifstream infile(&filename[0]);
+    return infile.good();
+}
 
 int main(int argc, char *argv[])
 {
@@ -39,9 +42,9 @@ int main(int argc, char *argv[])
     if ( argc < 3 )
     {
         std::cout << std::endl << std::endl;
-        std::cout << "Wrong usage of a program. Please call <program name> ";
+        std::cout << "Usage: <program name> ";
         std::cout << "<Output calculated file> ";
-        std::cout << "<name of the file with names of files with persistence landscapes/barcodes> ";
+        std::cout << "<name of the file with names of files with persistence landscapes/barcodes> " << std::endl;
         std::cout << "The program will now terminate." << std::endl;
         return 1;
     }
@@ -61,31 +64,44 @@ int main(int argc, char *argv[])
         }
     }
 
+    // check the input files
+    for (int j = 0; j < namesOfFiles.size(); ++j){
+        const std::string fname = namesOfFiles[j];
+        if (!is_file_exist(fname)){
+            std::cout << "File " << fname << " not found" << std::endl;
+            std::cout << "Program will be terminated! " << std::endl;
+            return 0;
+        }
+    }
     //now generate landscapes based on that files:
+    std::cout << "Number of lands/barcode files " << namesOfFiles.size() << std::endl;
     std::cout << "Creating Persistence Landscapes." << std::endl;
     std::vector< PersistenceLandscape > landscapes = createLandscapesFromTheFiles( namesOfFiles );
     std::cout << "Done." << std::endl;
-
+    if (landscapes.empty()){
+        std::cout << "Stop because there's no landscapes" << std::endl;
+        return 0;
+    }
     clock_t beforeComputations = clock();
 
     //And finally, do the permutation test:
     std::cout << "Computing scalar products. When finished, they will be found in the file 'scalarProducts.txt'" << std::endl;
-    ofstream out;
-    out.open( argv[1] );
+    
+    //ofstream out;
+    //out.open( argv[1] );
 
     std::vector< std::vector<double> > scalarProductMatrix;
 
-    for ( size_t i = 0 ; i != landscapes.size() ; ++i )
-    {
-        for ( size_t j = 0 ; j != landscapes.size() ; ++j )
-        {
-            out << computeInnerProduct( landscapes[i] , landscapes[j] ) << " ";
+    for ( size_t i = 0 ; i < landscapes.size() ; ++i ){
+        for (size_t j = 0; j < i; ++j) std::cout << "  ";
+        for ( size_t j = i ; j < landscapes.size() ; ++j ){
+            std::cout << computeInnerProduct( landscapes[i] , landscapes[j] ) << " ";
+            //out << computeInnerProduct( landscapes[i] , landscapes[j] ) << " ";
         }
-        out << endl;
+        //out << std::endl;
     }
 
-
-    out.close();
+    //out.close();
     std::cout << "That is all. Have a good day!" << std::endl;
 
     clock_t end = clock();
